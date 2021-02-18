@@ -13,7 +13,7 @@ const exec = require('child_process').exec;
 
 var commandDict = {
     "js": "node",
-    "py": "python",
+    "py": "python3",
     "sh": "sh"
 };
 
