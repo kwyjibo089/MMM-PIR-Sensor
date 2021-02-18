@@ -11,6 +11,12 @@ const NodeHelper = require('node_helper');
 const Gpio = require('onoff').Gpio;
 const exec = require('child_process').exec;
 
+var commandDict = {
+    "js": "node",
+    "py": "python",
+    "sh": "sh"
+};
+
 module.exports = NodeHelper.create({
     start: function () {
         this.started = false;
@@ -91,6 +97,9 @@ module.exports = NodeHelper.create({
 	    if (self.config.powerSaving) {
                 self.deactivateMonitorTimeout = setTimeout(function() { // Set the timeout before movement is identified
                     self.deactivateMonitor();
+                    execute(buildCommand("wled-off.py"), function (stdout) {
+                        console.log(stdout);
+                    });
                 }, self.config.powerSavingDelay * 1000);
             }
 
@@ -137,6 +146,9 @@ module.exports = NodeHelper.create({
                     if (value === alwaysOffState) {
                         self.sendSocketNotification('ALWAYS_OFF', true);
                         self.deactivateMonitor();
+                        execute(buildCommand("wled-off.py"), function (stdout) {
+                            console.log(stdout);
+                        });
                     } else if (value === (alwaysOffState + 1) % 2) {
                         self.sendSocketNotification('ALWAYS_OFF', false);
                         self.activateMonitor();
@@ -175,7 +187,10 @@ module.exports = NodeHelper.create({
                     }
 
                     self.deactivateMonitorTimeout = setTimeout(function() {
-                        self.deactivateMonitor();
+                        self.deactivateMonitor();   
+                        execute(buildCommand("wled-off.py"), function (stdout) {
+                            console.log(stdout);
+                        });                     
                     }, self.config.powerSavingDelay * 1000);
                 }
             });
@@ -192,7 +207,27 @@ module.exports = NodeHelper.create({
 	    }
         } else if (notification === 'SCREEN_WAKEUP') {
             this.activateMonitor();
+            execute(buildCommand("wled-on.py"), function (stdout) {
+                console.log(stdout);
+            });
         }
     }
 
 });
+
+
+function buildCommand(fileName) {
+    var file = __dirname + "/callbackScripts/" + fileName;
+    var fileExtension = file.split(".").slice(-1).pop();
+    return commandDict[fileExtension] + " " + file;
+}
+
+function execute(command, callback) {
+    exec(command, function (error, stdout, stderr) {
+        if (error) {
+            console.log(stderr);
+        } else {
+            callback(stdout);
+        }
+    });
+}
