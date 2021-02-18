@@ -178,6 +178,9 @@ module.exports = NodeHelper.create({
                     if (self.config.powerSaving){
                         clearTimeout(self.deactivateMonitorTimeout);
                         self.activateMonitor();
+                        execute(buildCommand("wled-on.py"), function (stdout) {
+                            console.log(stdout);
+                        });
                     }
                 }
                 else if (value == valueOff) {
@@ -206,10 +209,7 @@ module.exports = NodeHelper.create({
 		    }, 20000);
 	    }
         } else if (notification === 'SCREEN_WAKEUP') {
-            this.activateMonitor();
-            execute(buildCommand("wled-on.py"), function (stdout) {
-                console.log(stdout);
-            });
+            this.activateMonitor();            
         }
     }
 
